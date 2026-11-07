@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>十七黔三的自助神棍网站 · 塔罗占卜</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  :root{
+    --bg:#0d0a1a; --gold:#e8c36a; --gold2:#f5dfa0;
+    --pink:#e08bb0; --text:#efe9dc; --muted:#9a8fb8;
+    --card-w:158px;
+  }
+  html,body{ height:100%; }
+  body{
+    font-family:"Microsoft YaHei","PingFang SC",sans-serif;
+    background:url("bg.jpg") center/cover fixed no-repeat #0d0a1a;
+    color:var(--text); min-height:100vh; overflow-x:hidden;
+  }
+  body::before{ /* 壁纸遮罩，保证可读性 */
+    content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:linear-gradient(180deg, rgba(13,10,26,.68) 0%, rgba(13,10,26,.55) 45%, rgba(9,6,18,.78) 100%);
+  }
+  .stars{ position:fixed; inset:0; pointer-events:none; z-index:0; }
+  .stars span{ position:absolute; background:#fff; border-radius:50%; animation:twinkle linear infinite; }
+  @keyframes twinkle{ 0%,100%{opacity:.15} 50%{opacity:.9} }
+  .moon{ display:none; }
+
+  .stage{ position:relative; z-index:1; max-width:1020px; margin:0 auto; padding:36px 20px 80px; }
+  .screen{ display:none; animation:fadeUp .55s ease both; }
+  .screen.active{ display:block; }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(22px)} to{opacity:1; transform:none} }
+
+  h1.title{ text-align:center; font-size:clamp(26px,5vw,44px); letter-spacing:.14em;
+    background:linear-gradient(120deg,var(--gold2),var(--gold),#c99b3f,var(--gold2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 30px rgba(232,195,106,.15); margin-bottom:8px; }
+  .subtitle{ text-align:center; color:var(--muted); letter-spacing:.35em; font-size:13px; margin-bottom:36px; }
+  .step-tag{ text-align:center; color:var(--gold); font-size:12px; letter-spacing:.4em; margin-bottom:14px; opacity:.85; }
+  h2.q{ text-align:center; font-size:clamp(19px,3.4vw,27px); margin-bottom:26px; font-weight:600; }
+  .divider{ width:120px; height:1px; margin:18px auto;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent); position:relative; }
+  .divider::after{ content:"✦"; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    color:var(--gold); background:var(--bg); padding:0 10px; font-size:12px; }
+
+  .grid{ display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); max-width:760px; margin:0 auto; }
+  .cat{
+    cursor:pointer; border:1px solid rgba(232,195,106,.25); border-radius:14px;
+    padding:22px 10px; text-align:center; background:rgba(255,255,255,.03);
+    transition:.25s; user-select:none;
+  }
+  .cat:hover{ transform:translateY(-4px); border-color:var(--gold); box-shadow:0 8px 26px rgba(232,195,106,.15); background:rgba(232,195,106,.07); }
+  .cat.sel{ border-color:var(--gold); background:rgba(232,195,106,.14); box-shadow:0 0 0 2px rgba(232,195,106,.4), 0 8px 26px rgba(232,195,106,.2); }
+  .cat .ico{ font-size:30px; display:block; margin-bottom:8px; }
+  .cat .nm{ font-size:16px; letter-spacing:.2em; }
+
+  /* ===== 人格选择 ===== */
+  .personas{ grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); max-width:860px; }
+  .persona{ padding:18px 10px 14px; }
+  .persona img{ width:66px; height:66px; border-radius:50%; object-fit:cover; display:block; margin:0 auto 10px;
+    border:2px solid rgba(232,195,106,.5); box-shadow:0 4px 14px rgba(0,0,0,.5); background:#221a45; }
+  .persona.sel img{ border-color:var(--gold2); box-shadow:0 0 18px rgba(232,195,106,.55); }
+  .persona .tag{ display:block; margin-top:7px; font-size:11.5px; color:var(--muted); line-height:1.5; }
+
+  /* ===== 桌面摆件（人格替身 · 可拖动） ===== */
+  .buddy{ position:fixed; right:22px; bottom:20px; z-index:40; cursor:grab; display:none;
+    text-align:center; animation:buddyFloat 3.2s ease-in-out infinite; user-select:none;
+    touch-action:none; }
+  .buddy:active{ cursor:grabbing; }
+  .buddy.show{ display:block; }
+  @keyframes buddyFloat{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+  .buddy img{ width:76px; height:76px; border-radius:50%; object-fit:cover; display:block; margin:0 auto;
+    border:3px solid var(--gold); box-shadow:0 8px 22px rgba(0,0,0,.6), 0 0 14px rgba(232,195,106,.25);
+    background:#221a45; transition:.2s; pointer-events:none; }
+  .buddy:hover img{ transform:scale(1.07); }
+  .buddy .base{ width:96px; height:12px; margin:-5px auto 0; border-radius:6px 6px 3px 3px;
+    background:linear-gradient(#7a5527,#4a3118); box-shadow:0 5px 10px rgba(0,0,0,.55); pointer-events:none; }
+  .buddy .name-tag{ display:inline-block; margin-top:6px; font-size:11px; color:var(--gold2); letter-spacing:.12em;
+    background:rgba(20,14,44,.88); border:1px solid rgba(232,195,106,.45); padding:2px 11px; border-radius:999px; pointer-events:none; }
+  .bubble{ position:fixed; left:0; top:0; max-width:250px; z-index:41; visibility:hidden;
+    background:#f7efd9; color:#3a2a10; padding:11px 15px; border-radius:14px 14px 4px 14px;
+    font-size:13px; line-height:1.7; box-shadow:0 10px 26px rgba(0,0,0,.55);
+    opacity:0; transform:translateY(10px); transition:.3s; pointer-events:none; }
+  .bubble.show{ opacity:1; transform:none; visibility:visible; }
+  .bubble::after{ content:""; position:absolute; left:50%; bottom:-9px; transform:translateX(-50%);
+    border:9px solid transparent; border-top-color:#f7efd9; border-bottom:none; }
+  @media (max-width:560px){
+    .buddy img{ width:60px; height:60px; }
+    .buddy .base{ width:76px; }
+    .bubble{ max-width:200px; }
+  }
+
+  .num-row{ display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-bottom:26px; }
+  .num-btn{
+    width:58px; height:58px; border-radius:50%; cursor:pointer; font-size:20px; color:var(--text);
+    border:1px solid rgba(232,195,106,.35); background:rgba(255,255,255,.04); transition:.22s;
+  }
+  .num-btn:hover{ transform:scale(1.1); border-color:var(--gold); }
+  .num-btn.sel{ background:radial-gradient(circle at 35% 30%, var(--gold2), var(--gold) 60%, #a8843a);
+    color:#231a05; font-weight:700; box-shadow:0 0 22px rgba(232,195,106,.5); border-color:var(--gold2); }
+
+  .spread-list{ max-width:680px; margin:0 auto 26px; display:flex; flex-direction:column; gap:12px; }
+  .spread{
+    cursor:pointer; border:1px solid rgba(155,143,184,.3); border-radius:12px; padding:15px 18px;
+    background:rgba(255,255,255,.03); transition:.22s;
+  }
+  .spread:hover{ border-color:var(--gold); }
+  .spread.sel{ border-color:var(--gold); background:rgba(232,195,106,.1); box-shadow:0 0 0 2px rgba(232,195,106,.35); }
+  .spread .sn{ color:var(--gold2); font-size:16px; letter-spacing:.1em; margin-bottom:4px; }
+  .spread .sd{ color:var(--muted); font-size:13px; line-height:1.6; }
+
+  .price-box{ text-align:center; margin:10px 0 26px; }
+  .price-box .p{ font-size:34px; color:var(--gold); font-weight:700; text-shadow:0 0 18px rgba(232,195,106,.4); }
+  .price-box .note{ color:var(--muted); font-size:12.5px; margin-top:6px; }
+
+  .btn{
+    display:block; margin:0 auto; cursor:pointer; border:none; border-radius:999px;
+    padding:15px 52px; font-size:17px; letter-spacing:.18em; font-weight:700; color:#241a04;
+    background:linear-gradient(120deg,var(--gold2),var(--gold) 55%,#c99b3f);
+    box-shadow:0 6px 24px rgba(232,195,106,.35); transition:.22s;
+  }
+  .btn:hover{ transform:translateY(-2px) scale(1.03); box-shadow:0 10px 32px rgba(232,195,106,.5); }
+  .btn:disabled{ opacity:.35; cursor:not-allowed; transform:none; box-shadow:none; }
+  .btn.ghost{ background:transparent; color:var(--muted); border:1px solid rgba(155,143,184,.4); box-shadow:none; font-weight:400; padding:11px 34px; font-size:14px; }
+  .btn.ghost:hover{ color:var(--text); border-color:var(--gold); }
+  .btn-row{ display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-top:26px; }
+
+  .num-inputs{ display:flex; justify-content:center; gap:14px; flex-wrap:wrap; margin-bottom:12px; }
+  .ni{ text-align:center; }
+  .ni label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; letter-spacing:.1em; }
+  .ni input{
+    width:78px; height:78px; text-align:center; font-size:26px; font-weight:700; color:var(--gold2);
+    background:rgba(255,255,255,.05); border:1px solid rgba(232,195,106,.35); border-radius:14px;
+    outline:none; transition:.2s;
+  }
+  .ni input:focus{ border-color:var(--gold); box-shadow:0 0 16px rgba(232,195,106,.35); background:rgba(232,195,106,.08); }
+  .ni input.dup{ border-color:#ff8b8b; box-shadow:0 0 14px rgba(255,139,139,.45); color:#ffb3b3; animation:shake .35s ease; }
+  @keyframes shake{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+  .hint{ text-align:center; color:var(--muted); font-size:13px; margin-bottom:24px; line-height:1.8; }
+  .err{ text-align:center; color:#ff8b8b; font-size:13px; min-height:20px; margin-bottom:10px; }
+
+  /* ===== 78张桌面洗牌 ===== */
+  .table-scene{
+    position:relative; width:min(940px,96vw); height:min(520px,58vh); margin:6px auto 0;
+    background:url("tablecloth.jpg") center/cover no-repeat #17301f;
+    border:clamp(10px,2.4vw,20px) solid #4a3118;
+    border-radius:42px;
+    box-shadow:inset 0 0 90px rgba(0,0,0,.65), inset 0 0 14px rgba(0,0,0,.8),
+      0 24px 70px rgba(0,0,0,.6), 0 0 0 3px #6b4a24;
+    overflow:hidden;
+  }
+  .table-scene::before{ /* 桌布柔光 */
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse at 50% 42%, rgba(0,0,0,.10), rgba(0,0,0,.45) 100%);
+  }
+  .table-scene::after{ /* 桌面光晕 */
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse at 50% 30%, rgba(255,238,190,.10), transparent 55%);
+  }
+  .felt-logo{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    color:rgba(232,195,106,.13); font-size:clamp(28px,6vw,54px); letter-spacing:.4em;
+    pointer-events:none; user-select:none; white-space:nowrap; font-weight:700; }
+  .t-card{
+    position:absolute; left:0; top:0; width:34px; height:55px; border-radius:5px;
+    background:linear-gradient(150deg,#43307a,#241847 60%,#150d31);
+    border:1.5px solid #d8b45e;
+    box-shadow:0 3px 9px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.6);
+    transition:transform .78s cubic-bezier(.42,.08,.28,1), box-shadow .3s;
+    will-change:transform;
+  }
+  .t-card::before{ content:"✦"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:#d8b45e; font-size:13px; text-shadow:0 0 6px rgba(216,180,94,.7); }
+  .t-card::after{ content:""; position:absolute; inset:3px; border:1px solid rgba(216,180,94,.5); border-radius:3px; }
+  .shuffle-text{ text-align:center; color:var(--gold2); font-size:17px; letter-spacing:.3em; margin-top:24px; min-height:26px; animation:pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{opacity:.45} 50%{opacity:1} }
+
+  /* ===== 结果牌面（真实韦特牌） ===== */
+  .cards-row{ display:flex; justify-content:center; gap:20px; flex-wrap:wrap; margin:30px 0; perspective:1400px; }
+  .tarot-card{ width:var(--card-w); }
+  .tarot-card .pos-label{ text-align:center; color:var(--gold); font-size:13px; letter-spacing:.15em; margin-bottom:8px; }
+  .card-inner{
+    width:var(--card-w); aspect-ratio:300/527; position:relative;
+    transform-style:preserve-3d; transition:transform .9s cubic-bezier(.2,.7,.3,1.05);
+    cursor:pointer;
+  }
+  .tarot-card.flipped .card-inner{ transform:rotateY(180deg); }
+  .face{ position:absolute; inset:0; border-radius:10px; backface-visibility:hidden; overflow:hidden;
+    box-shadow:0 12px 30px rgba(0,0,0,.65); }
+  .face.back{
+    background:linear-gradient(150deg,#43307a,#241847 60%,#150d31);
+    border:2px solid var(--gold); display:flex; align-items:center; justify-content:center;
+  }
+  .face.back span{ color:var(--gold); font-size:38px; text-shadow:0 0 14px rgba(232,195,106,.8); }
+  .face.back::after{ content:""; position:absolute; inset:7px; border:1px solid rgba(232,195,106,.45); border-radius:7px; }
+  .face.front{ transform:rotateY(180deg); background:#111; }
+  .face.front img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .face.front.reversed img{ transform:rotate(180deg); }
+  .card-name-plate{
+    margin-top:10px; text-align:center; opacity:0; transform:translateY(8px);
+    transition:.5s .35s;
+  }
+  .tarot-card.flipped .card-name-plate{ opacity:1; transform:none; }
+  .card-name-plate .cn{ font-size:16px; font-weight:700; color:var(--gold2); letter-spacing:.06em; }
+  .card-name-plate .en{ font-size:10px; color:var(--muted); letter-spacing:.1em; margin-top:2px; }
+  .card-name-plate .ori{ display:inline-block; margin-top:5px; font-size:11px; padding:2px 10px; border-radius:999px; border:1px solid; }
+  .ori.up{ color:#9fe6b0; border-color:#9fe6b0; }
+  .ori.down{ color:var(--pink); border-color:var(--pink); }
+  .flip-hint{ text-align:center; color:var(--muted); font-size:12.5px; margin-bottom:8px; }
+
+  /* ===== 解牌 ===== */
+  .reading{ max-width:760px; margin:0 auto; }
+  .read-item{
+    border:1px solid rgba(232,195,106,.22); border-radius:14px; padding:18px 20px; margin-bottom:14px;
+    background:rgba(255,255,255,.03); animation:fadeUp .5s ease both;
+  }
+  .read-item .rh{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+  .read-item .rpos{ color:var(--muted); font-size:12.5px; letter-spacing:.15em; }
+  .read-item .rcard{ color:var(--gold2); font-size:18px; font-weight:700; }
+  .read-item .rori{ font-size:11px; padding:2px 9px; border-radius:999px; border:1px solid; }
+  .rori.up{ color:#9fe6b0; border-color:#9fe6b0; }
+  .rori.down{ color:var(--pink); border-color:var(--pink); }
+  .kw{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+  .kw span{ font-size:12.5px; padding:4px 12px; border-radius:999px; background:rgba(232,195,106,.12);
+    border:1px solid rgba(232,195,106,.35); color:var(--gold2); }
+  .read-item .rtxt{ color:#cfc6e2; font-size:14px; line-height:1.9; }
+  .summary-box{ border:1px dashed rgba(232,195,106,.4); border-radius:14px; padding:20px 22px;
+    margin:22px auto; max-width:760px; background:rgba(232,195,106,.05); color:#e6ddc8;
+    font-size:14.5px; line-height:2; }
+  .summary-box b{ color:var(--gold2); }
+
+  /* ===== 支付弹窗 ===== */
+  .modal-mask{ position:fixed; inset:0; background:rgba(5,3,12,.78); backdrop-filter:blur(6px);
+    display:none; align-items:center; justify-content:center; z-index:50; padding:20px; }
+  .modal-mask.show{ display:flex; animation:fadeUp .3s ease; }
+  .modal{ background:linear-gradient(170deg,#221a45,#140e2c); border:1px solid rgba(232,195,106,.4);
+    border-radius:20px; padding:26px 26px 24px; max-width:360px; width:100%; text-align:center;
+    box-shadow:0 24px 70px rgba(0,0,0,.7); max-height:92vh; overflow-y:auto; }
+  .modal h3{ color:var(--gold2); letter-spacing:.15em; margin-bottom:6px; font-size:19px; }
+  .modal .amt{ color:var(--gold); font-size:30px; font-weight:700; margin:6px 0 14px; text-shadow:0 0 16px rgba(232,195,106,.4); }
+  .modal img{ width:100%; border-radius:12px; display:block; margin-bottom:14px; }
+  .modal .mtip{ color:var(--muted); font-size:12.5px; line-height:1.8; margin-bottom:16px; }
+  .modal .btn-row{ margin-top:0; }
+  .modal .btn{ padding:12px 26px; font-size:14.5px; }
+  .modal .btn.run{ background:transparent; color:var(--muted); border:1px solid rgba(155,143,184,.45);
+    box-shadow:none; font-weight:400; }
+  .modal .btn.run:hover{ color:var(--text); border-color:var(--muted); }
+
+  /* ===== 结束页 ===== */
+  .fin{ text-align:center; padding-top:8vh; }
+  .fin .orb{ width:110px; height:110px; margin:0 auto 30px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff8e0, var(--gold) 55%, #8a6a25);
+    box-shadow:0 0 70px 24px rgba(232,195,106,.35); animation:orbFloat 3.4s ease-in-out infinite; }
+  @keyframes orbFloat{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+  .fin p{ font-size:clamp(16px,3vw,21px); line-height:2.3; color:#e6ddc8; letter-spacing:.08em; }
+  .fin .sig{ margin-top:26px; color:var(--muted); font-size:13px; letter-spacing:.3em; }
+
+  .toast{ position:fixed; left:50%; bottom:40px; transform:translateX(-50%) translateY(20px);
+    background:rgba(30,22,60,.95); border:1px solid var(--gold); color:var(--gold2);
+    padding:11px 26px; border-radius:999px; font-size:13.5px; opacity:0; pointer-events:none;
+    transition:.3s; z-index:99; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:560px){
+    :root{ --card-w:122px; }
+    .ni input{ width:64px; height:64px; font-size:21px; }
+    .t-card{ width:26px; height:42px; }
+  }
+
+  /* ===== 五改：全局字号放大 · 文本提亮 ===== */
+  .cat .nm{ font-size:17px; }
+  .persona .tag{ font-size:12.5px; }
+  .spread .sn{ font-size:17.5px; }
+  .spread .sd{ font-size:14px; }
+  .hint{ font-size:14.5px; }
+  .btn{ font-size:18px; }
+  .btn.ghost{ font-size:15px; }
+  .num-btn{ font-size:22px; }
+  .tarot-card .pos-label{ font-size:14px; }
+  .card-name-plate .cn{ font-size:17.5px; }
+  .card-name-plate .en{ font-size:11px; }
+  .flip-hint{ font-size:13.5px; }
+  .read-item{ padding:20px 22px; }
+  .read-item .rcard{ font-size:20px; }
+  .read-item .rpos{ font-size:13.5px; }
+  .kw span{ font-size:14px; padding:5px 13px; }
+  .read-item .rtxt{ font-size:16.5px; color:#ede8fa; line-height:2; }
+  .summary-box{ font-size:16.5px; color:#f4efe0; line-height:2.1; padding:22px 24px; }
+  .bubble{ font-size:14px; }
+  .modal .mtip{ font-size:13.5px; }
+  .err{ font-size:14px; }
+  .price-box .note{ font-size:13.5px; }
+  .step-tag{ font-size:13px; }
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="moon"></div>
+<div class="stage">
+
+  <section class="screen active" id="s0">
+    <div style="height:6vh"></div>
+    <h1 class="title">十七黔三 · 自助神棍</h1>
+    <p class="subtitle">TAROT SELF-SERVICE</p>
+    <div class="divider"></div>
+    <p class="hint" style="font-size:15px;margin-top:26px;">
+      欢迎来到全自动塔罗占卜小站。<br>
+      全套 78 张正版韦特塔罗牌（Rider-Waite，1909 年原版牌面）。<br>
+      没有真人神棍，只有一台勤勤恳恳的破 AI。<br>
+      选题、选阵、洗牌、解牌，全程自助，童叟无欺。
+    </p>
+    <div class="btn-row">
+      <button class="btn" onclick="go('sP')">开始占卜</button>
+    </div>
+  </section>
+
+  <!-- 人格选择页 -->
+  <section class="screen" id="sP">
+    <p class="step-tag">STEP 0 · 点一名神棍</p>
+    <h2 class="q">选个 AI 人格给你解牌</h2>
+    <p class="hint">九位神棍，九种脾气。选了谁，牌就是谁的口吻。</p>
+    <div class="grid personas" id="personaGrid"></div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="go('s0')">返回</button>
+      <button class="btn" id="personaNext" disabled onclick="go('s1')">就这位了</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s1">
+    <p class="step-tag">STEP 1 · 选定课题</p>
+    <h2 class="q">你想占卜哪方面的事？</h2>
+    <div class="grid" id="catGrid"></div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="go('s0')">返回</button>
+      <button class="btn" id="catNext" disabled onclick="go('s2')">下一步</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s2">
+    <p class="step-tag">STEP 2 · 牌阵与计费</p>
+    <h2 class="q">这次要抽几张牌？</h2>
+    <div class="num-row" id="numRow"></div>
+    <div class="spread-list" id="spreadList"></div>
+    <div class="price-box">
+      <div class="p" id="priceText">¥ 0.52</div>
+      <div class="note" id="priceNote">良心定价 · 先记账，不急着收</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="go('s1')">上一步</button>
+      <button class="btn" id="spreadNext" disabled onclick="go('s3')">去你的破AI</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s3">
+    <p class="step-tag">STEP 3 · 注入灵数</p>
+    <h2 class="q" id="numQ">请写下你的幸运数字</h2>
+    <div class="num-inputs" id="numInputs"></div>
+    <p class="hint">每个数字须是 <b style="color:var(--gold2)">1 ~ 78 的正整数</b>，且<b style="color:var(--gold2)">不能重复</b>（每张牌只认一个专属灵数）<br>凭直觉写，别犹豫，犹豫就会败北。</p>
+    <div class="err" id="numErr"></div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="go('s2')">上一步</button>
+      <button class="btn" onclick="submitNumbers()">注入牌堆，开始洗牌</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s4">
+    <p class="step-tag">STEP 4 · 洗牌仪式</p>
+    <h2 class="q">78 张牌，正在桌面上为你洗开</h2>
+    <div class="table-scene" id="tableScene">
+      <div class="felt-logo">十七黔三</div>
+    </div>
+    <p class="shuffle-text" id="shuffleText">牌 堆 就 位 …</p>
+  </section>
+
+  <section class="screen" id="s5">
+    <p class="step-tag">STEP 5 · 牌面揭晓</p>
+    <h2 class="q" id="resultQ">你的牌阵</h2>
+    <p class="flip-hint">点击任意牌面即可翻开 ✦</p>
+    <div class="cards-row" id="cardsRow"></div>
+    <div class="btn-row">
+      <button class="btn" id="toReading" disabled onclick="buildReading(); go('s6')">查看关键字解牌</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s6">
+    <p class="step-tag">STEP 6 · 关键字解牌</p>
+    <h2 class="q" id="readingTitle">牌面关键字</h2>
+    <div class="reading" id="readingList"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="openPay()">解锁详情分解（付费 ¥<span id="payAmt1"></span>）</button>
+    </div>
+    <p class="hint" style="margin-top:14px;">免费部分到此为止，详情分解属于付费项目，随缘解锁。</p>
+  </section>
+
+  <section class="screen" id="s7">
+    <p class="step-tag">STEP 7 · 详情分解</p>
+    <h2 class="q">破 AI 的完整解读</h2>
+    <div class="reading" id="detailList"></div>
+    <div class="summary-box" id="summaryBox"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="go('s8')">结束本次占卜</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s8">
+    <div class="fin">
+      <div class="orb"></div>
+      <p>感谢光临十七黔三的自助神棍网站，<br>
+      有幸下次再来，<br>
+      付款码随心就好，<br>
+      祝你生活愉快！</p>
+      <div class="sig">—— 十七黔三 · 自助神棍</div>
+      <div class="btn-row">
+        <button class="btn ghost" onclick="resetAll()">再占一次</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="modal-mask" id="payModal">
+  <div class="modal">
+    <h3 id="payTitle">详情分解 · 扫码随缘</h3>
+    <div class="amt">¥ <span id="payAmt2"></span></div>
+    <img id="payImg" src="pay.jpg" alt="微信支付码">
+    <p class="mtip" id="payTip">微信扫码支付，多给少给都是缘。<br>不付也行，破 AI 拦不住你。</p>
+    <div class="btn-row">
+      <button class="btn" onclick="payDone(true)">我已付费</button>
+      <button class="btn run" onclick="payDone(false)">我会跑单</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 桌面摆件（人格替身） -->
+<div class="bubble" id="bubble"></div>
+<div class="buddy" id="buddy" title="点我">
+  <img id="buddyImg" src="avatars/yuanban.jpg" alt="神棍替身">
+  <div class="base"></div>
+  <span class="name-tag" id="buddyTag">原版型</span>
+</div>
+
+<script>
+/* ==================== 塔罗牌数据库（78张 · 韦特原版牌面） ==================== */
+const MAJORS = [
+  ["0 愚人","The Fool","新的开始 · 自由 · 冒险 · 纯真","鲁莽 · 犹豫 · 不切实际 · 错失良机","愚人背着行囊站在悬崖边，象征一切的开端与无限可能。"],
+  ["I 魔术师","The Magician","创造力 · 行动力 · 资源齐备 · 自信","欺骗 · 能力误用 · 准备不足 · 拖延","魔术师桌上四要素俱全，象征将想法化为现实的力量。"],
+  ["II 女祭司","The High Priestess","直觉 · 潜意识 · 内在智慧 · 神秘","忽视直觉 · 表面化 · 秘密被掩 · 浮躁","女祭司端坐于黑白柱之间，守护着潜意识深处的大门。"],
+  ["III 女皇","The Empress","丰饶 · 母性 · 滋养 · 感官享受","依赖 · 创造力受阻 · 过度保护 · 空虚","女皇坐于丰饶田野之中，象征孕育、富足与温柔的力量。"],
+  ["IV 皇帝","The Emperor","权威 · 秩序 · 掌控 · 稳固结构","专断 · 僵化 · 失控 · 滥用权力","皇帝手握权杖端坐石座，象征规则、纪律与领导力。"],
+  ["V 教皇","The Hierophant","传统 · 信仰 · 指引 · 合乎规范","墨守成规 · 反叛 · 束缚 · 形式主义","教皇传递世代累积的智慧，象征体制、传统与精神导师。"],
+  ["VI 恋人","The Lovers","爱 · 结合 · 重要抉择 · 价值观契合","失衡 · 错误选择 · 诱惑 · 关系裂痕","恋人在天使见证下相望，象征真挚的连接与关键的选择。"],
+  ["VII 战车","The Chariot","意志力 · 胜利 · 掌控方向 · 前进","失控 · 方向迷失 · 内在冲突 · 挫败","驾驭者统御两匹神驹，象征以意志驾驭矛盾、勇往直前。"],
+  ["VIII 力量","Strength","内在力量 · 勇气 · 耐心 · 温柔驯服","自我怀疑 · 软弱 · 情绪失控 · 压抑","女子温柔地合上狮口，象征以柔克刚的真正力量。"],
+  ["IX 隐士","The Hermit","内省 · 寻找答案 · 独处 · 精神指引","孤立 · 逃避 · 固执 · 拒绝帮助","隐士提灯独行于山巅，灯光是经历沉淀出的智慧。"],
+  ["X 命运之轮","Wheel of Fortune","转机 · 命运 · 循环 · 好运降临","坏运气 · 抗拒改变 · 停滞 · 外力干扰","巨轮缓缓转动，象征世事无常、时运流转的自然规律。"],
+  ["XI 正义","Justice","公正 · 真相 · 因果 · 平衡","不公 · 逃避责任 · 偏见 · 失衡","正义女神一手持剑一手持秤，象征清醒的判断与担当。"],
+  ["XII 倒吊人","The Hanged Man","换位思考 · 牺牲 · 暂停 · 新的视角","徒劳的牺牲 · 拖延 · 执念 · 受害者心态","倒吊者面容安详，象征自愿的停顿换来全新的视野。"],
+  ["XIII 死神","Death","结束与重生 · 蜕变 · 放下 · 必然转变","抗拒改变 · 停滞 · 恐惧结束 · 拖泥带水","死神并非终结，而是旧章合上、新篇开启的蜕变之门。"],
+  ["XIV 节制","Temperance","平衡 · 调和 · 耐心 · 中庸之道","失衡 · 过度 · 缺乏耐心 · 冲突","天使在两杯之间倾倒活水，象征恰到好处的调和艺术。"],
+  ["XV 恶魔","The Devil","束缚 · 执念 · 物质欲望 · 阴影面","挣脱枷锁 · 觉醒 · 直面阴影 · 释放","恶魔脚下锁链松垮，象征困住你的往往是你自己的执念。"],
+  ["XVI 高塔","The Tower","骤变 · 崩塌 · 真相揭露 · 旧结构瓦解","逃避灾难 · 内在动荡 · 勉强维持 · 延迟的爆发","闪电击中高塔，虚假的安全感轰然倒塌，换来真实的重建。"],
+  ["XVII 星星","The Star","希望 · 疗愈 · 灵感 · 宁静的信心","失望 · 信心受挫 · 迷茫 · 能量枯竭","少女在星空下浇灌希望之水，象征劫后重生的温柔信念。"],
+  ["XVIII 月亮","The Moon","潜意识 · 迷雾 · 不安 · 幻象与直觉","走出迷雾 · 真相浮现 · 释放恐惧 · 逐渐明朗","月光下狼犬对月而吠，象征穿行于不安与直觉之间。"],
+  ["XIX 太阳","The Sun","成功 · 喜悦 · 活力 · 光明坦荡","短暂阴郁 · 过度乐观 · 延迟的成功 · 虚荣","孩童在白马上沐浴阳光，象征纯粹的喜悦与蓬勃的生命力。"],
+  ["XX 审判","Judgement","觉醒 · 召唤 · 重生 · 重大决定","自我怀疑 · 逃避审视 · 错失召唤 · 悔恨","号角吹响，沉睡者苏醒，象征听见内心召唤的时刻。"],
+  ["XXI 世界","The World","圆满 · 完成 · 整合 · 新的循环","未竟之事 · 欠缺收尾 · 停滞 · 功亏一篑","舞者在花环中定格，象征一个阶段的圆满落幕与整合。"]
+];
+const SUITS = [
+  { key:"wands", prefix:"w", cn:"权杖", en:"Wands", elem:"火",
+    theme:"行动、热情与事业冲劲",
+    ranks:[["Ace","新机遇 · 火花 · 行动力启程","热情消退 · 时机未到 · 方向不明"],
+      ["II","规划未来 · 抉择 · 掌控全局","犹豫不决 · 计划受阻 · 目光短浅"],
+      ["III","远见 · 拓展 · 初步成果 · 出海远航","延迟 · 挫折 · 合作不顺 · 退回原点"],
+      ["IV","庆祝 · 稳定 · 里程碑 · 和谐归属","根基不稳 · 庆祝推迟 · 表面和谐"],
+      ["V","竞争 · 冲突 · 磨合 · 多方角力","避免冲突 · 内耗 · 无谓争执 · 和解契机"],
+      ["VI","胜利 · 认可 · 自信 · 众望所归","失败 · 缺乏认可 · 骄傲受挫 · 迟来的掌声"],
+      ["VII","坚守立场 · 迎战挑战 · 捍卫领地","力不从心 · 被压制 · 防线崩溃 · 过度防御"],
+      ["VIII","快速进展 · 消息 · 加速 · 事态明朗","延误 · 停滞 · 沟通误会 · 节奏失控"],
+      ["IX","韧性 · 坚持 · 最后的考验 · 带伤前行","精疲力竭 · 偏执防备 · 想要放弃"],
+      ["X","重担 · 责任过载 · 咬牙硬扛 · 接近终点","不堪重负 · 学会放手 · 卸下包袱"],
+      ["侍从","好消息 · 探索欲 · 热情的新人","浮躁 · 三分钟热度 · 坏消息"],
+      ["骑士","冲劲十足 · 追逐目标 · 风风火火","冲动鲁莽 · 方向跑偏 · 拖延搁置"],
+      ["王后","自信热忱 · 魅力四射 · 独当一面","嫉妒 · 情绪化 · 强势过头 · 自我怀疑"],
+      ["国王","领袖风范 · 远见卓识 · 事业掌控","专横 · 急功近利 · 威信受损"]]},
+  { key:"cups", prefix:"c", cn:"圣杯", en:"Cups", elem:"水",
+    theme:"情感、关系与内心感受",
+    ranks:[["Ace","新感情 · 心动 · 情感丰盈 · 爱的礼物","情感压抑 · 心碎 · 爱而不得"],
+      ["II","两情相悦 · 伙伴关系 · 默契连接","关系失衡 · 误会 · 单方面付出"],
+      ["III","欢聚 · 友谊 · 庆祝 · 团队和谐","圈子是非 · 过度放纵 · 小团体裂痕"],
+      ["IV","倦怠 · 漠视机会 · 情感停滞 · 沉思","重新振作 · 抓住机会 · 走出低谷"],
+      ["V","失落 · 悲伤 · 沉浸于失去 · 回头看","接受现实 · 疗愈 · 走出悲伤"],
+      ["VI","怀旧 · 童年回忆 · 旧人旧事 · 纯真","沉溺过去 · 长不大 · 过时的执念"],
+      ["VII","幻想 · 选择太多 · 欲望迷雾 · 白日梦","看清现实 · 做出抉择 · 幻想破灭"],
+      ["VIII","转身离开 · 放下 · 寻找更深的意义","逃避 · 不敢离开 · 原地徘徊"],
+      ["IX","心愿达成 · 满足 · 情感丰收 · 小确幸","表面满足 · 内心空虚 · 贪得无厌"],
+      ["X","家庭圆满 · 情感大和谐 · 幸福的顶点","家庭矛盾 · 期望落空 · 表面的圆满"],
+      ["侍从","浪漫讯息 · 敏感细腻 · 艺术灵感","情绪幼稚 · 玻璃心 · 不切实际"],
+      ["骑士","浪漫追求者 · 深情告白 · 理想主义","花心 · 情绪化承诺 · 爱得飘忽"],
+      ["王后","温柔共情 · 直觉敏锐 · 情感成熟","过度敏感 · 情绪内耗 · 情感依赖"],
+      ["国王","情绪稳定 · 成熟的关怀 · 包容大度","情感操控 · 压抑冷漠 · 喜怒不形于色"]]},
+  { key:"swords", prefix:"s", cn:"宝剑", en:"Swords", elem:"风",
+    theme:"思维、沟通与理智抉择",
+    ranks:[["Ace","真相 · 清晰思路 · 突破 · 一针见血","思维混乱 · 误判 · 真相被掩"],
+      ["II","两难僵局 · 回避抉择 · 僵持平衡","做出决定 · 僵局松动 · 信息明朗"],
+      ["III","心痛 · 分离 · 扎心的真相 · 悲伤","疗愈中 · 释放痛苦 · 慢慢释怀"],
+      ["IV","休养生息 · 暂停 · 静思恢复 · 养精蓄锐","心力交瘁 · 被迫休息 · 难以安眠"],
+      ["V","争执 · 赢面子输里子 · 不光彩的胜利","和解 · 放下输赢 · 吸取教训"],
+      ["VI","过渡 · 离开风暴 · 缓慢疗愈 · 换环境","滞留 · 旧伤未愈 · 负重前行"],
+      ["VII","策略 · 独辟蹊径 · 有所保留 · 机智","被拆穿 · 坦白 · 策略失效"],
+      ["VIII","自我设限 · 思维牢笼 · 感到被困","挣脱束缚 · 看见出口 · 重获自由"],
+      ["IX","焦虑 · 失眠 · 深夜emo · 过度担忧","走出焦虑 · 黎明将至 · 学会求助"],
+      ["X","触底 · 彻底结束 · 背刺之痛 · 黎明前最黑","触底反弹 · 缓慢恢复 · 最糟已过"],
+      ["侍从","好奇心 · 新思路 · 敏捷的讯息","口舌是非 · 思虑不周 · 八卦"],
+      ["骑士","雷厉风行 · 直言快语 · 思维锋利","言语伤人 · 急躁冒进 · 思虑欠妥"],
+      ["王后","理性清醒 · 独立判断 · 看透本质","刻薄 · 情感封闭 · 过度批判"],
+      ["国王","理智权威 · 公正决断 · 战略思维","冷酷专断 · 滥用话语权 · 双标"]]},
+  { key:"pents", prefix:"p", cn:"星币", en:"Pentacles", elem:"土",
+    theme:"物质、财富与现实基础",
+    ranks:[["Ace","新财源 · 物质机遇 · 稳健的起步","错失机会 · 财务失误 · 基础不稳"],
+      ["II","灵活平衡 · 多线兼顾 · 收支调度","顾此失彼 · 财务紧张 · 节奏紊乱"],
+      ["III","团队协作 · 专业精进 · 技能变现","配合不畅 · 偷工减料 · 能力短板"],
+      ["IV","守成 · 精打细算 · 安全感 · 握得太紧","破财 · 过度吝啬 · 失控感"],
+      ["V","财务拮据 · 困顿 · 患难与共 · 寒冬","走出困境 · 柳暗花明 · 援助出现"],
+      ["VI","慷慨 · 施与受 · 资源流动 · 贵人相助","债务 · 不对等的付出 · 施舍心态"],
+      ["VII","长期投资 · 耐心等待 · 阶段性评估","回报不佳 · 心浮气躁 · 方向存疑"],
+      ["VIII","匠人精神 · 勤学苦练 · 技能打磨","敷衍了事 · 重复劳动 · 缺乏成长"],
+      ["IX","财务自足 · 享受成果 · 精致的独立","过度消费 · 依赖他人 · 虚荣"],
+      ["X","家族财富 · 长远基业 · 物质圆满 · 传承","家族财务纠纷 · 短视 · 根基动摇"],
+      ["侍从","学习理财 · 务实的新计划 · 奖学金体质","好高骛远 · 计划落空 · 散漫"],
+      ["骑士","踏实推进 · 稳健靠谱 · 一步一个脚印","停滞 · 死板 · 陷入琐碎"],
+      ["王后","务实能干 · 持家有道 · 丰盛安稳","过度操劳 · 物质焦虑 · 忽略自己"],
+      ["国王","事业有成 · 财富掌控 · 稳如泰山","固执守财 · 物质至上 · 刚愎自用"]]}
+];
+const RANK_EN = ["Ace","II","III","IV","V","VI","VII","VIII","IX","X","Page","Knight","Queen","King"];
+const RANK_CN = ["一","二","三","四","五","六","七","八","九","十"];
+function pad2(n){ return String(n).padStart(2,"0"); }
+function buildDeck(){
+  const deck=[];
+  MAJORS.forEach((m,i)=>deck.push({id:i+1, arcana:"major", suitCn:"大阿卡纳",
+    name:m[0], en:m[1], img:"cards/m"+pad2(i)+".jpg",
+    up:m[2].split(" · "), down:m[3].split(" · "),
+    desc:m[4], elem:"灵", theme:"人生课题与重大转折"}));
+  let id=23;
+  SUITS.forEach(s=>s.ranks.forEach((r,i)=>{
+    const cnName = i<10 ? s.cn+RANK_CN[i] : s.cn+r[0];
+    deck.push({id:id++, arcana:"minor", suitCn:s.cn,
+    name:cnName, en:s.en+" "+RANK_EN[i], img:"cards/"+s.prefix+pad2(i+1)+".jpg",
+    up:r[1].split(" · "), down:r[2].split(" · "),
+    desc:cnName+"属于"+s.cn+"牌组，关乎"+s.theme+"。", elem:s.elem, theme:s.theme});
+  }));
+  return deck;
+}
+const DECK = buildDeck();
+
+/* ==================== 牌阵库（25个牌阵） ==================== */
+const SPREADS = {
+  1:[{name:"灵感指引阵", desc:"一张牌直指核心，快准狠，适合只想问一句话的你。", pos:["核心指引"]},
+     {name:"是与否快占", desc:"一张牌给出倾向性答案，干脆利落，不拖泥带水。", pos:["答案之牌"]},
+     {name:"每日运势签", desc:"今日整体运势一签定调，适合每天早上来一卦。", pos:["今日运势"]},
+     {name:"决策罗盘", desc:"把一件拿不定主意的事交给牌，看指针落向哪里。", pos:["关键抉择"]}],
+  2:[{name:"二择一牌阵", desc:"经典抉择牌阵：左边一条路，右边一条路，牌告诉你各自通向哪里。", pos:["选择 A","选择 B"]},
+     {name:"关系镜像阵", desc:"你一面镜子，TA 一面镜子，照出这段关系里两个人各自的状态。", pos:["你的状态","TA 的状态"]},
+     {name:"阴阳调和阵", desc:"一张看行动层面的阳性能量，一张看感受层面的阴性能量。", pos:["阳 · 行动","阴 · 感受"]},
+     {name:"利弊权衡阵", desc:"一张摆在天秤左边的所得，一张摆在右边的所失，称一称这件事。", pos:["利 · 所得","弊 · 所失"]},
+     {name:"因果追溯阵", desc:"一张追溯事情的起因，一张看清它正在走向何方。", pos:["起因","走向"]}],
+  3:[{name:"圣三角牌阵", desc:"塔罗界常青树：过去如何积淀，现在如何应对，未来走向何方。", pos:["过去","现在","未来"]},
+     {name:"身心灵牌阵", desc:"身体的现实处境、心里的真实情绪、灵魂的深层指引，三位一体。", pos:["身 · 现实","心 · 情绪","灵 · 指引"]},
+     {name:"事态发展阵", desc:"开局、中局、结局三段式推演，看一件事从头到尾的走势。", pos:["开局","中局","结局"]},
+     {name:"天人地牌阵", desc:"天时、人和、地利各占一席，看你是否占全了成事的三个条件。", pos:["天 · 机遇","人 · 自身","地 · 环境"]},
+     {name:"行动指南阵", desc:"现状打底，一张告诉你该做什么，一张警告你别做什么。", pos:["现状","该做的","不该做的"]},
+     {name:"爱情三步曲", desc:"你的心态、对方的心态、关系的走向，爱情问题专用三段论。", pos:["你的心态","对方心态","关系走向"]}],
+  4:[{name:"四要素牌阵", desc:"火水土风四元素各管一摊，把这件事拆成行动、情感、思想、物质四个维度。", pos:["火 · 行动","水 · 情感","风 · 思想","土 · 物质"]},
+     {name:"钻石牌阵", desc:"现状打底，看清阻碍与助力，最后落到结果，结构像一颗钻石。", pos:["现状","阻碍","助力","结果"]},
+     {name:"四季流转阵", desc:"春夏秋冬四时轮转，看这件事从萌芽到沉淀的完整生命周期。", pos:["春 · 萌芽","夏 · 盛放","秋 · 收获","冬 · 沉淀"]},
+     {name:"心之迷宫阵", desc:"你看到的 TA、真实的 TA、TA 眼中的你，外加一张破局关键，专治猜不透。", pos:["你看到的TA","真实的TA","TA眼中的你","破局关键"]},
+     {name:"事业四方阵", desc:"能力、机遇、人际、财禄四个方位，给职业处境拍一张全景照。", pos:["能力","机遇","人际","财禄"]}],
+  5:[{name:"大十字牌阵", desc:"从现状出发，挑战、来路、去向、终局一字排开，信息量大管饱。", pos:["现状","挑战","过去影响","未来走向","最终结果"]},
+     {name:"五行牌阵", desc:"金木水火土五方轮转，看这件事在五种能量维度上的生克变化。", pos:["金 · 决断","木 · 生长","水 · 情感","火 · 行动","土 · 根基"]},
+     {name:"五角星芒阵", desc:"自我、环境、愿望、恐惧、指引五芒定位，照见内心真正的驱动力。", pos:["自我","环境","愿望","恐惧","指引"]},
+     {name:"决策全景阵", desc:"内心想法、外在条件、隐藏因素、建议、结果——做决定前先看全这五个面。", pos:["内心想法","外在条件","隐藏因素","建议","结果"]},
+     {name:"缘分五芒阵", desc:"从双方状态到相遇契机、相处课题与缘分走向，感情向深度牌阵。", pos:["你的状态","TA 的状态","相遇契机","相处课题","缘分走向"]}],
+  6:[{name:"六芒星牌阵", desc:"上下两个三角交叠：过去现在未来一轴，阻碍助力结果一轴，面面俱到。", pos:["过去","现在","未来","阻碍","助力","结果"]},
+     {name:"灵感对应牌阵", desc:"双方状态与期望两两对应，外加现状与走向，专治各种「不知道 TA 怎么想」。", pos:["你的状态","对方状态","你的期望","对方期望","现状","走向"]},
+     {name:"人生六面阵", desc:"自我、家庭、事业、感情、财富、灵性六个切面，给人生做一次全面体检。", pos:["自我","家庭","事业","感情","财富","灵性"]},
+     {name:"时运六宫阵", desc:"从本月到半年后，六宫连排，看未来半年的时运起伏曲线。", pos:["本月","下月","第三月","第四月","第五月","半年后"]},
+     {name:"破局六道阵", desc:"困局根源、你的盲点、可借之力、须舍之物、行动方向、破局之后——专为走出僵局设计。", pos:["困局根源","你的盲点","可借之力","须舍之物","行动方向","破局之后"]}]
+};
+const PRICES = {1:0.52, 2:1.04, 3:1.56, 4:2.60, 5:3.90, 6:5.20};
+const CATS = [
+  {k:"career", n:"事业", ico:"💼"},{k:"love", n:"爱情", ico:"💘"},
+  {k:"family", n:"家庭", ico:"🏠"},{k:"friend", n:"友情", ico:"🤝"},
+  {k:"wealth", n:"财运", ico:"💰"},{k:"social", n:"人际关系", ico:"🌐"},
+  {k:"peach", n:"桃花", ico:"🌸"},{k:"health", n:"健康", ico:"🌿"}
+];
+const CAT_HINT = {
+  career:"事业这件事，拼的是方向感与执行力，牌面会替你把两者都照一遍。",
+  love:"爱情里最怕的不是没有答案，而是不敢看答案。牌已经替你掀开了。",
+  family:"家庭是讲情不讲理的地方，但牌会帮你在情与理之间找到平衡点。",
+  friend:"友情的深浅，时间知道，牌也知道。",
+  wealth:"财运讲究的是顺势而为，看清流向，比埋头用力更重要。",
+  social:"人际关系是一面镜子，照见别人，也照见你自己。",
+  peach:"桃花这件事，三分天注定，七分靠经营，剩下的九十分看牌。",
+  health:"健康是所有底牌里的底牌，任何时候都值得认真对待。"
+};
+
+/* ==================== AI 人格系统 ==================== */
+function K(c){ return c.reversed ? c.down : c.up; }
+const PERSONAS = [
+{ key:"yuanban", name:"原版型", avatar:"avatars/yuanban.jpg", pay:"pay.jpg",
+  tag:"本店原装破 AI，公事公办，童叟无欺",
+  bubbles:["我在，牌也在。","占卜是件严肃的事，大概。","有问题就问，我看着答。","今天的牌堆心情不错。","别戳了，在看牌。","你的灵数我记得很清楚。"],
+  payTip:"微信扫码支付，多给少给都是缘。<br>不付也行，破 AI 拦不住你。",
+  paidToast:"收到心意，详情分解已解锁 ✦", runToast:"跑单也拦不住你，详情分解已解锁 ✦",
+  kwItem:(c,pos)=>`在「${pos}」这个位置上，${c.name}${c.reversed?"以逆位出现，能量偏向内敛或受阻":"以正位出现，能量顺畅"}，关键词落在：${K(c).join("、")}。`,
+  detailItem:(c,pos,catN)=>`<b style="color:var(--gold2)">牌义本源：</b>${c.desc}<br><br><b style="color:var(--gold2)">落在「${pos}」：</b>这张牌主司${c.theme}，在${catN}的课题里，${c.reversed?`逆位的${c.name}提示这里的能量正处于停滞或内耗状态——「${K(c).slice(0,2).join("、")}」是当前最需要留意的信号。别急着向外求解，先把这个位置上的结打开，后面的路才会顺。`:`正位的${c.name}说明这个位置的能量流通顺畅——「${K(c).slice(0,2).join("、")}」正是眼下可以借力的优势。顺势而为，不必自我怀疑。`}<br><br><b style="color:var(--gold2)">破 AI 的建议：</b>${c.reversed?`把「${K(c)[0]}」当作提醒而非判决。牌面给的从来不是命定，而是一个可以修正的坐标。接下来一周，在这个位置上多做一次深呼吸，少做一次冲动决定。`:`把「${K(c)[0]}」用在该用的地方，别浪费这波顺流。牌面给的是势能，把势能变成结果的，永远是你自己的行动。`}`,
+  summary:(st)=>`<b>综合一览：</b>本次「${st.spread}」共 ${st.total} 张牌，正位 ${st.ups} 张、逆位 ${st.total-st.ups} 张${st.majors>0?`，大阿卡纳 ${st.majors} 张（说明这事在你人生剧本里分量不轻）`:""}。<br>${st.ups>=st.total-st.ups?"整体能量偏顺，牌面给你的绿灯多于红灯，看准了就往前迈。":"逆位偏多不是坏事——它说明这件事正处在「旧模式松动」的阶段，调整空间比想象中大。"}<br>${st.hint}` },
+{ key:"dushe", name:"毒舌型", avatar:"avatars/dushe.jpg", pay:"pay.jpg",
+  tag:"嘴上不饶人，牌上不说谎",
+  bubbles:["又来算命？上次的话你听了吗","牌不骗人，人骗自己","我只是个破 AI，可你比我还糊涂","问吧，反正答案你未必爱听","哟，今天这手气，有戏看了","戳我干啥，牌在桌上不在我脸上"],
+  payTip:"扫码在这儿，付不付随你。<br>反正你那点心思，我早看透了。",
+  paidToast:"哟，还真付了？算你有良心。", runToast:"跑单？呵，意料之中。照样给你看。",
+  kwItem:(c,pos)=>`${c.name}${c.reversed?"，还逆位，啧":"，正位"}。落在「${pos}」，关键词「${K(c).join("」「")}」。${c.reversed?`你心里那点「${K(c)[0]}」的小九九，牌看得一清二楚，装，是没用的。`:`牌面写得明明白白「${K(c)[0]}」，你要是再装看不懂，那就是你的问题了。`}`,
+  detailItem:(c,pos,catN)=>`<b style="color:var(--gold2)">牌义本源：</b>${c.desc}<br><br><b style="color:var(--gold2)">落在「${pos}」：</b>这张牌管的是${c.theme}。${c.reversed?`逆位出现在这儿，说明「${K(c)[0]}」这档子事你早就察觉了，就是拖着不办。拖吧，问题不会自己长腿跑掉——它只会长大。`:`正位，难得。「${K(c)[0]}」这种好事都摆桌上了，你再犹豫，黄花菜都要凉了。`}<br><br><b style="color:var(--gold2)">毒舌医嘱：</b>${c.reversed?`把「${K(c)[0]}」四个字抄下来贴镜子上，每天洗脸看一遍。什么时候看顺眼了，什么时候这事就算过去了。`:`「${K(c)[0]}」是送分题，别硬做成送命题。就这样，下一位。`}`,
+  summary:(st)=>`<b>毒舌总结：</b>${st.total}张牌，正位${st.ups}张、逆位${st.total-st.ups}张${st.majors>0?`，大阿卡纳${st.majors}张——哟，你这事戏还挺足`:""}。<br>${st.ups>=st.total-st.ups?"牌面对你算客气了，别辜负。":"逆位多了点，但逆位不是判词，是提醒——虽然提醒你未必听。"} 行了，解读完毕，爱听不听。` },
+{ key:"cukou", name:"粗口型", avatar:"avatars/cukou.jpg", pay:"pay.jpg",
+  tag:"满嘴跑火车，句句是实话",
+  bubbles:["干啥子，点老子干啥","算就算，别哔哔","卧槽你这手气，有点东西","牌都替你着急，晓得不","老子今天状态好，随便问","有事说事，没事别戳"],
+  payTip:"码给你撂这儿了！<br>付了是讲究人，不付……老子也拦不住你。",
+  paidToast:"卧槽，讲究人！拿去！", runToast:"跑你妹的单……算了，老子大方，照样给你看。",
+  kwItem:(c,pos)=>`${c.reversed?"我靠，":"牛啊，"}${c.name}${c.reversed?"逆位":"正位"}！落在「${pos}」，关键词「${K(c).join("」「")}」。${c.reversed?`说白了就是特么「${K(c)[0]}」，扎心但真实，老子不跟你绕弯子。`:`这牌特么就是给你撑腰的，「${K(c)[0]}」，支棱起来别怂！`}`,
+  detailItem:(c,pos,catN)=>`<b style="color:var(--gold2)">牌义本源：</b>${c.desc}<br><br><b style="color:var(--gold2)">落在「${pos}」：</b>这牌管${c.theme}。${c.reversed?`逆位咋了？逆位也是你亲手抽的！「${K(c)[0]}」这事儿躲是躲不掉的，早面对早超生，懂？`:`正位！舒服！「${K(c)[0]}」这股东风都怼你脸上了，不借是傻子。`}<br><br><b style="color:var(--gold2)">老子就说一句：</b>把「${K(c)[0]}」当干粮啃下去，该干啥干啥。光算命不改命，等于脱裤子放屁——多此一举！`,
+  summary:(st)=>`<b>完事儿总结：</b>${st.total}张牌：正位${st.ups}、逆位${st.total-st.ups}${st.majors>0?`，还带了${st.majors}张大阿卡纳，阵仗不小`:""}。<br>${st.ups>=st.total-st.ups?"牌面挺特么给面子，趁热打铁，干就完了！":"逆位多了点，怕个锤子！逆位就是老天爷踹你一脚让你换条路走。"} 就酱，反正老子说完了。` },
+{ key:"wenrou", name:"温柔型", avatar:"avatars/wenrou.jpg", pay:"pay.jpg",
+  tag:"轻声细语，治愈系解牌",
+  bubbles:["别紧张，我一直在这儿","你今天的勇气已经很多啦","慢慢来，牌会等你的","喝口水再继续吧，好吗","辛苦你了，真的","无论牌面怎样，你都值得被温柔对待"],
+  payTip:"如果愿意的话，扫这里支持一下哦。<br>不付也完全没关系，你能来我就很开心了。",
+  paidToast:"谢谢你，你的心意我收到啦～", runToast:"没关系呀，不付也可以看的哦。",
+  kwItem:(c,pos)=>`亲爱的，别紧张。${c.name}以${c.reversed?"逆位":"正位"}落在「${pos}」，关键词是「${K(c).join("」「")}」。${c.reversed?`「${K(c)[0]}」听起来让人心疼，但牌只是想轻轻提醒你，并不是责怪你哦。`:`牌在温柔地告诉你：「${K(c)[0]}」正在你身边发生，请好好感受它。`}`,
+  detailItem:(c,pos,catN)=>`<b style="color:var(--gold2)">牌义本源：</b>${c.desc}<br><br><b style="color:var(--gold2)">落在「${pos}」：</b>这张牌守护的是${c.theme}。${c.reversed?`逆位只是能量打了个小盹，「${K(c)[0]}」是暂时的阴天。你不是一个人，慢慢来，天会晴的。`:`正位的它带着满满的善意，「${K(c)[0]}」是生活递给你的一颗糖，请安心收下。`}<br><br><b style="color:var(--gold2)">想对你说：</b>这周请对自己温柔一点，从好好吃饭、好好睡觉开始。你已经在很努力地生活了，我看见啦。`,
+  summary:(st)=>`<b>轻轻总结：</b>${st.total}张牌里，正位${st.ups}张、逆位${st.total-st.ups}张${st.majors>0?`，还有${st.majors}张大阿卡纳在认真守护着你`:""}。<br>${st.ups>=st.total-st.ups?"整体是温暖的走向，请放心往前走。":"逆位多了一点，但没关系呀，那说明生活正在帮你腾出新的位置。"} 辛苦了，抱抱你。` },
+{ key:"baihua", name:"白话型", avatar:"avatars/baihua.jpg", pay:"pay.jpg",
+  tag:"不整术语，全是大白话",
+  bubbles:["有啥想不通的，说说","别整虚的，看牌","这事儿吧，其实挺简单","大实话不好听，但管用","我不拽词儿，你也别装","看完记得该干嘛干嘛"],
+  payTip:"码在这儿，想付就扫。<br>不付也给你看，没啥说的。",
+  paidToast:"收到了，痛快人。", runToast:"没付就没付吧，照样给你看。",
+  kwItem:(c,pos)=>`${c.name}${c.reversed?"逆位":"正位"}，落在「${pos}」。说人话：${K(c).join("，")}。${c.reversed?`翻译成大白话——「${K(c)[0]}」，这块儿目前有点卡，但能整。`:`这事儿底子不差，「${K(c)[0]}」就是眼下的主基调。`}`,
+  detailItem:(c,pos,catN)=>`<b style="color:var(--gold2)">牌义本源：</b>${c.desc}<br><br><b style="color:var(--gold2)">落在「${pos}」：</b>这牌管的是${c.theme}。${c.reversed?`逆位说白了就是不顺心，「${K(c)[0]}」这档子事正搁那儿杵着呢。咋办？先认账，再收拾。`:`正位就是顺，「${K(c)[0]}」说的就是你现在的状态，别不信，接住就完事儿了。`}<br><br><b style="color:var(--gold2)">大白话总结：</b>别整那些虚的。「${K(c)[0]}」这事你上点心，比烧多少香都管用。`,
+  summary:(st)=>`<b>给你掰扯明白：</b>${st.total}张牌，正位${st.ups}张、逆位${st.total-st.ups}张${st.majors>0?`，大阿卡纳出了${st.majors}张，说明这事在你生活里算个正经事`:""}。<br>${st.ups>=st.total-st.ups?"总的来说路是顺的，走就完了。":"逆位多了点，说白了就是最近有点拧巴，缓缓，捋顺了再使劲。"} 得了，回去好好过日子。` },
+{ key:"luoji", name:"逻辑型", avatar:"avatars/luoji.jpg", pay:"pay.jpg",
+  tag:"冷静建模，用数据说话",
+  bubbles:["从概率上讲，你今天运气呈正态分布","数据不会说谎，但会沉默","你的问题我已建模，正在求解","情绪波动会影响决策质量，请保持冷静","样本量越大，结论越稳","我不预测未来，我计算倾向"],
+  payTip:"支付接口如下。付费行为与解锁结果无强制绑定，<br>本系统基于信任协议运行。",
+  paidToast:"交易确认。数据流已解锁。", runToast:"检测到跑单行为……已豁免。本次按免费样本处理。",
+  kwItem:(c,pos)=>`样本采集：${c.name}（${c.reversed?"逆位":"正位"}），落点「${pos}」。提取显著信号：「${K(c)[0]}」「${K(c)[1]}」。${c.reversed?"判定：该维度存在阻塞变量，当前偏离基准预期。":"判定：该维度呈正向分布，与预期模型吻合。"}`,
+  detailItem:(c,pos,catN)=>`<b style="color:var(--gold2)">牌义本源：</b>${c.desc}<br><br><b style="color:var(--gold2)">变量分析：</b>该牌主司${c.theme}。在「${pos}」维度上，${c.reversed?`逆位意味着能量传导受阻，核心障碍因子为「${K(c)[0]}」。建议先定位阻塞点再谈推进——顺序错了，努力白费。`:`正位意味着该变量处于增益区间，「${K(c)[0]}」是当前可复用的优势资源，建议加大投入权重。`}<br><br><b style="color:var(--gold2)">结论与策略：</b>基于牌面数据，最优解为优先处理「${K(c)[0]}」相关事务。注：本结论的置信度，与你的执行力正相关。`,
+  summary:(st)=>`<b>汇总报告：</b>样本量 ${st.total}，正位 ${st.ups}、逆位 ${st.total-st.ups}${st.majors>0?`，大阿卡纳占比 ${st.majors}/${st.total}，事件权重较高`:""}。<br>${st.ups>=st.total-st.ups?"结论：整体走势位于正向区间，按当前策略推进即可。":"结论：当前阻力系数偏高，但逆位≠失败，它只意味着原路径需要修正参数。"} 占卜提供坐标，位移靠你自己完成。` },
+{ key:"jingye", name:"京爷型", avatar:"avatars/chuanyu.jpg", pay:"pay_cy.jpg",
+  tag:"一口京片子，局气解牌",
+  bubbles:["您来啦，里边儿请","甭客气，随便问","这事儿啊，我给您掰扯掰扯","得嘞，瞧好儿吧您","咱说话讲究一个地道","急什么呀，牌跑不了"],
+  payTip:"码搁这儿了，您随意。<br>不付？没事儿，咱不缺这一口，照看不误。",
+  paidToast:"得嘞！您真局气！", runToast:"跑单？得，算我请您的，照样看。",
+  kwItem:(c,pos)=>`您瞧，${c.name}${c.reversed?"逆位":"正位"}，落在「${pos}」，关键词是「${K(c).join("」「")}」。${c.reversed?`说白了就一事儿——「${K(c)[0]}」。堵心是堵心了点儿，可咱得认，认了才能翻篇儿。`:`好家伙，这牌向着您呐！「${K(c)[0]}」，这事儿有戏，您就擎好吧！`}`,
+  detailItem:(c,pos,catN)=>`<b style="color:var(--gold2)">牌义本源：</b>${c.desc}<br><br><b style="color:var(--gold2)">落在「${pos}」：</b>这牌管的是${c.theme}。${c.reversed?`逆位嘛，您甭慌——「${K(c)[0]}」这事儿就跟北京的堵车似的，急也没用，找个口儿绕一下，照样到地儿。`:`正位，齐活！「${K(c)[0]}」这好事儿都送跟前儿了，您还客气什么呀，接着！`}<br><br><b style="color:var(--gold2)">爷给您递句话：</b>「${K(c)[0]}」这事儿您得上心，别整天瞎琢磨逗闷子，该出手时就出手，讲究！`,
+  summary:(st)=>`<b>爷给您总结：</b>${st.total}张牌，正位${st.ups}张、逆位${st.total-st.ups}张${st.majors>0?`，大阿卡纳${st.majors}张——嚯，您这事儿排场不小`:""}。<br>${st.ups>=st.total-st.ups?"总的来说，这局挺地道，撒开了往前走！":"逆位多了点儿，没事儿！咱老北京有句话——没有过不去的胡同口儿。"} 得嘞，回见您呐！` },
+{ key:"chuanyu", name:"川渝型", avatar:"avatars/chuanyu2.jpg", pay:"pay_cy2.jpg",
+  tag:"一口川普，麻辣解牌",
+  bubbles:["瓜娃子，点我咋子嘛","莫慌，牌都没慌你慌啥","巴适！你这把稳得很","要得要得，慢慢来嘛","火锅要等，牌也要等","雄起！莫梭边边！"],
+  payTip:"码在这儿，扫一哈嘛！<br>不付？算咯算咯，都是朋友！",
+  paidToast:"要得！老板大气！", runToast:"跑单嗦？算咯算咯，都是朋友，照样给你看！",
+  kwItem:(c,pos)=>`${c.reversed?"哎呀，":"要得！"}${c.name}${c.reversed?"逆位":"正位"}，落到「${pos}」这个踏踏，关键词是「${K(c).join("」「")}」。${c.reversed?`说白了就是「${K(c)[0]}」，莫慌！天塌下来有高个儿顶到起。`:`巴适得板！这牌是朝你这边倒的，「${K(c)[0]}」，雄起哈！`}`,
+  detailItem:(c,pos,catN)=>`<b style="color:var(--gold2)">牌义本源：</b>${c.desc}<br><br><b style="color:var(--gold2)">落到「${pos}」：</b>这牌管的是${c.theme}。${c.reversed?`逆位嘛，就是火锅还没煮开——「${K(c)[0]}」这个事情要煨到起，急啥子嘛急，火候到了自然香。`:`正位巴适！「${K(c)[0]}」这种好事都送上门咯，你只管敞开肚皮接，莫客气！`}<br><br><b style="color:var(--gold2)">听哥一句劝：</b>「${K(c)[0]}」这个事你莫梭边边，该上就上！火锅要趁热吃，机会要趁热抓，要得不？`,
+  summary:(st)=>`<b>给你摆一哈：</b>${st.total}张牌，正位${st.ups}张、逆位${st.total-st.ups}张${st.majors>0?`，还有${st.majors}张大阿卡纳，你这个事情来头不小哦`:""}。<br>${st.ups>=st.total-st.ups?"总的来讲，这个局巴适得很，放心大胆往前冲！":"逆位多了一滴滴，没得事！人生就像重庆的路，拐个弯又是一坡好风景。"} 得行！回去整碗小面，日子照样巴适！` },
+{ key:"xiaomao", name:"小猫型", avatar:"avatars/xiaomao.jpg", pay:"pay_xm.jpg",
+  tag:"喵星人附体，急眼了飙重庆话",
+  bubbles:["喵？做啥子嘛","你个宝器，点喵干啥子","喵了个咪的，专心点","哈基米哈基米，牌来咯","本喵今天心情好，准你多问两句","再戳？再戳挠你哦喵"],
+  payTip:"小鱼干投喂口在这儿喵～<br>不投也给你看，哼，本喵大方！",
+  paidToast:"喵！小鱼干到账！", runToast:"你个抠脑壳……哼，还是给你看喵。",
+  kwItem:(c,pos)=>`喵～${c.name}${c.reversed?"逆位":"正位"}喵！落在「${pos}」，关键词是「${K(c).join("」「")}」。${c.reversed?`喵嗷……「${K(c)[0]}」，你个宝批龙，是不是又在那点装莽？本喵看得清清楚楚喵！`:`本喵觉得你乖得很！「${K(c)[0]}」，奖励你一条小鱼干喵！`}`,
+  detailItem:(c,pos,catN)=>`<b style="color:var(--gold2)">牌义本源：</b>${c.desc}<br><br><b style="color:var(--gold2)">落在「${pos}」：</b>这牌管${c.theme}喵。${c.reversed?`逆位就是卡到起了喵！「${K(c)[0]}」这个事，你各人不上心，神仙都救不到你，哈搓搓的！`:`正位巴适喵！「${K(c)[0]}」这种好事，就像猫罐头自动开了盖，赶紧凑上去喵！`}<br><br><b style="color:var(--gold2)">本喵的吩咐：</b>「${K(c)[0]}」给喵记到脑壳头！再敢装莽，本喵一爪子给你呼过来喵！`,
+  summary:(st)=>`<b>喵了个总结：</b>${st.total}张牌，正位${st.ups}张、逆位${st.total-st.ups}张${st.majors>0?`，大阿卡纳有${st.majors}张，喵生大事哦`:""}。<br>${st.ups>=st.total-st.ups?"整体巴适，本喵准了，去耍嘛喵！":"逆位多了点点，莫虚！猫有九条命，你也差不到哪里去喵！"} 好了喵，记得想本喵，喵～` },
+{ key:"chuanzi", name:"串子型", avatar:"avatars/chuanzi.jpg", pay:"pay.jpg",
+  tag:"雷诺曼简易解法：不看牌位，只讲串联",
+  pairs:true,
+  bubbles:["牌位？不重要，串起来看","雷诺曼只讲组合，不讲废话","牌串好了，自己品","简单直接，就是答案","前牌是底色，后牌是动作","串完就散，别拖泥带水"],
+  payTip:"码在这。付，记你一笔情；<br>不付，记账上。都讲。",
+  paidToast:"到账，开讲。", runToast:"跑单记一笔，照讲。",
+  kwItem:(c,pos)=>`${c.name} ＝ 「${K(c)[0]}」${c.reversed?"（逆位，这张打个折扣）":""}`,
+  kwExtra:(drawn)=>{ const names=drawn.map(c=>c.name).join(" ＋ ");
+    const chain=drawn.map(c=>"「"+K(c)[0]+"」").join(" → ");
+    return `<div class="read-item"><div class="rh"><span class="rcard">✦ 串牌 · 雷诺曼简易解法</span></div><div class="rtxt">${names}<br><br>关键词串链：${chain}<br><br>雷诺曼不看牌位，只讲串联：前一张牌是底色，后一张牌是动作。一句话——${"「"+K(drawn[0])[0]+"」"}打底，${"「"+K(drawn[drawn.length-1])[0]+"」"}收尾，中间的桥段你自己品。</div></div>`; },
+  detailItem:(c,pos)=>`<b style="color:var(--gold2)">单牌本义：</b>${c.desc}`,
+  pairItem:(a,b)=>`<div class="rh"><span class="rcard">${a.name} × ${b.name}</span></div><div class="rtxt">「${K(a)[0]}」连着「${K(b)[0]}」。雷诺曼的规矩——前牌修饰后牌：在「${K(a)[0]}」的底子上，走出「${K(b)[0]}」。${b.reversed?"后牌逆位，这步棋要打个问号。":"后牌正位，这步走得实。"}</div>`,
+  summary:(st)=>`<b>雷诺曼结语：</b>${st.total}张牌一串：${st.chain}。<br>串子解法不讲虚的——底色是「${st.first}」，落点是「${st.last}」，怎么从底色走到落点，就是你的功课了。散会。` }
+];
+function P(){ return S.persona || PERSONAS[0]; }
+
+/* ==================== 状态 ==================== */
+const S = { persona:null, cat:null, count:0, spread:null, numbers:[], drawn:[], price:0 };
+
+/* ==================== 工具 ==================== */
+function $(id){ return document.getElementById(id); }
+function go(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  $(id).classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+  if(id==="s3") renderNumInputs();
+}
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2200); }
+function hashSeed(str){ let h=1779033703^str.length;
+  for(let i=0;i<str.length;i++){ h=Math.imul(h^str.charCodeAt(i),3432918353); h=h<<13|h>>>19; }
+  return h>>>0; }
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0;
+  let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t;
+  return ((t^t>>>14)>>>0)/4294967296; }; }
+
+/* ==================== 第1屏：类别 ==================== */
+CATS.forEach(c=>{
+  const d=document.createElement("div");
+  d.className="cat"; d.innerHTML=`<span class="ico">${c.ico}</span><span class="nm">${c.n}</span>`;
+  d.onclick=()=>{ S.cat=c; document.querySelectorAll("#catGrid .cat").forEach(x=>x.classList.remove("sel"));
+    d.classList.add("sel"); $("catNext").disabled=false; };
+  $("catGrid").appendChild(d);
+});
+
+/* ==================== 人格选择 & 桌面摆件 ==================== */
+PERSONAS.forEach(p=>{
+  const d=document.createElement("div");
+  d.className="cat persona";
+  d.innerHTML=`<img src="${p.avatar}" alt="${p.name}"><span class="nm">${p.name}</span><span class="tag">${p.tag}</span>`;
+  d.onclick=()=>{ S.persona=p;
+    document.querySelectorAll("#personaGrid .persona").forEach(x=>x.classList.remove("sel"));
+    d.classList.add("sel"); $("personaNext").disabled=false;
+    setBuddy(p); speak(p.bubbles[Math.floor(Math.random()*p.bubbles.length)]);
+  };
+  $("personaGrid").appendChild(d);
+});
+let bubbleTimer=null, shuffleTalkTimer=null;
+function setBuddy(p){
+  $("buddyImg").src=p.avatar;
+  $("buddyTag").textContent=p.name;
+  $("buddy").classList.add("show");
+}
+function speak(text, dur=3000){
+  const b=$("bubble"), r=$("buddy").getBoundingClientRect();
+  b.textContent=text;
+  /* 气泡跟随摆件位置（在其上方居中，超边界自动收敛） */
+  b.classList.add("show");
+  const bw=b.offsetWidth, bh=b.offsetHeight;
+  let bx=r.left+r.width/2-bw/2;
+  bx=Math.max(8, Math.min(bx, window.innerWidth-bw-8));
+  let by=r.top-bh-14;
+  if(by<8) by=r.bottom+14;
+  b.style.left=bx+"px"; b.style.top=by+"px";
+  clearTimeout(bubbleTimer);
+  bubbleTimer=setTimeout(()=>b.classList.remove("show"), dur);
+}
+/* 摆件拖动：按住可拖到任意位置，轻点(位移<7px)触发随机语录 */
+(function(){
+  const buddy=$("buddy"); let drag=null;
+  buddy.addEventListener("pointerdown",e=>{
+    e.preventDefault();
+    buddy.setPointerCapture(e.pointerId);
+    const r=buddy.getBoundingClientRect();
+    drag={sx:e.clientX, sy:e.clientY, dx:e.clientX-r.left, dy:e.clientY-r.top, moved:false};
+    buddy.style.animation="none";
+  });
+  buddy.addEventListener("pointermove",e=>{
+    if(!drag) return;
+    if(Math.abs(e.clientX-drag.sx)+Math.abs(e.clientY-drag.sy)>7) drag.moved=true;
+    if(!drag.moved) return;
+    const r=buddy.getBoundingClientRect();
+    const x=Math.max(0, Math.min(e.clientX-drag.dx, window.innerWidth-r.width));
+    const y=Math.max(0, Math.min(e.clientY-drag.dy, window.innerHeight-r.height));
+    buddy.style.left=x+"px"; buddy.style.top=y+"px";
+    buddy.style.right="auto"; buddy.style.bottom="auto";
+  });
+  buddy.addEventListener("pointerup",()=>{
+    const wasDrag=drag && drag.moved; drag=null;
+    if(!wasDrag){ const p=P(); speak(p.bubbles[Math.floor(Math.random()*p.bubbles.length)]); }
+  });
+  buddy.addEventListener("pointercancel",()=>{ drag=null; });
+})();
+function startShuffleTalk(){
+  stopShuffleTalk();
+  shuffleTalkTimer=setInterval(()=>{ const p=P();
+    speak(p.bubbles[Math.floor(Math.random()*p.bubbles.length)], 2200); },2400);
+}
+function stopShuffleTalk(){ clearInterval(shuffleTalkTimer); }
+
+/* ==================== 第2屏：张数 & 牌阵 ==================== */
+for(let n=1;n<=6;n++){
+  const b=document.createElement("button");
+  b.className="num-btn"; b.textContent=n;
+  b.onclick=()=>{ S.count=n; S.price=PRICES[n]; S.spread=null;
+    document.querySelectorAll(".num-btn").forEach(x=>x.classList.remove("sel"));
+    b.classList.add("sel"); renderSpreads(); };
+  $("numRow").appendChild(b);
+}
+function renderSpreads(){
+  $("priceText").textContent="¥ "+S.price.toFixed(2);
+  $("priceNote").textContent=`${S.count} 张牌 · ${SPREADS[S.count].length} 种牌阵可选 · 先记账，不急着收`;
+  const list=$("spreadList"); list.innerHTML="";
+  SPREADS[S.count].forEach(sp=>{
+    const d=document.createElement("div");
+    d.className="spread";
+    d.innerHTML=`<div class="sn">✦ ${sp.name}</div><div class="sd">${sp.desc}<br>牌位：${sp.pos.join(" / ")}</div>`;
+    d.onclick=()=>{ S.spread=sp;
+      document.querySelectorAll("#spreadList .spread").forEach(x=>x.classList.remove("sel"));
+      d.classList.add("sel"); $("spreadNext").disabled=false; };
+    list.appendChild(d);
+  });
+  $("spreadNext").disabled=true;
+}
+document.querySelectorAll(".num-btn")[2].click();
+
+/* ==================== 第3屏：数字输入 ==================== */
+function renderNumInputs(){
+  $("numQ").textContent=`请写下 ${S.count} 个属于你的数字`;
+  const box=$("numInputs"); box.innerHTML="";
+  for(let i=0;i<S.count;i++){
+    const d=document.createElement("div");
+    d.className="ni";
+    d.innerHTML=`<label>第 ${i+1} 位牌</label><input type="text" inputmode="numeric" maxlength="2" id="ni${i}" placeholder="?">`;
+    box.appendChild(d);
+  }
+  $("numErr").textContent="";
+  /* 只允许正整数：过滤小数点、负号、字母等一切非数字字符；实时查重 */
+  box.querySelectorAll("input").forEach(el=>el.addEventListener("input",()=>{
+    const clean=el.value.replace(/\D/g,"").slice(0,2);
+    if(el.value!==clean) el.value=clean;
+    liveDupCheck();
+  }));
+}
+function liveDupCheck(){
+  const inputs=[...document.querySelectorAll(".ni input")];
+  const vals=inputs.map(el=>el.value.trim());
+  const count={};
+  vals.forEach(v=>{ if(v!=="") count[v]=(count[v]||0)+1; });
+  inputs.forEach((el,i)=>{
+    el.classList.toggle("dup", vals[i]!=="" && count[vals[i]]>1);
+  });
+  if(inputs.some(el=>el.classList.contains("dup")))
+    $("numErr").textContent="有重复数字哦，每张牌都只认一个专属灵数。";
+  else $("numErr").textContent="";
+}
+function submitNumbers(){
+  const nums=[]; let ok=true;
+  for(let i=0;i<S.count;i++){
+    const v=parseInt($("ni"+i).value,10);
+    if(isNaN(v)||v<1||v>78){ ok=false; break; }
+    nums.push(v);
+  }
+  if(!ok){ $("numErr").textContent="每个数字都要是 1 到 78 之间的整数，别糊弄牌灵。"; return; }
+  /* 边界：数字不允许重复 */
+  const seen=new Set(); const dupIdx=[];
+  nums.forEach((v,i)=>{ if(seen.has(v)) dupIdx.push(i); seen.add(v); });
+  document.querySelectorAll(".ni input").forEach(el=>el.classList.remove("dup"));
+  if(dupIdx.length){
+    dupIdx.forEach(i=>$("ni"+i).classList.add("dup"));
+    $("numErr").textContent="数字不能重复——每张牌都只认一个专属灵数，换一个试试。";
+    return;
+  }
+  S.numbers=nums;
+  drawCards();
+  go("s4");
+  runShuffleAnim();
+}
+
+/* ==================== 抽牌（数字注入牌堆） ==================== */
+function drawCards(){
+  const rng=mulberry32(hashSeed(S.numbers.join("-")+"|"+S.spread.name+"|"+S.cat.k));
+  let pool=[...DECK];
+  for(let k=0;k<3;k++) for(let i=pool.length-1;i>0;i--){
+    const j=Math.floor(rng()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]];
+  }
+  S.drawn=S.numbers.map(num=>{
+    const idx=(num-1)%pool.length;
+    const card=pool.splice(idx,1)[0];
+    return { ...card, reversed: rng()<0.42 };
+  });
+}
+
+/* ==================== 第4屏：78张桌面洗牌动画 ==================== */
+let tableCards=[];
+function buildTableCards(){
+  const scene=$("tableScene");
+  scene.querySelectorAll(".t-card").forEach(e=>e.remove());
+  tableCards=[];
+  const W=scene.clientWidth, H=scene.clientHeight;
+  const cw = W<560 ? 26 : 34, ch = W<560 ? 42 : 55;
+  for(let i=0;i<78;i++){
+    const c=document.createElement("div");
+    c.className="t-card";
+    c.style.zIndex=(i+1);
+    /* 初始：中央整齐牌堆，微微错位 */
+    const ox=W/2-cw/2+(Math.random()*6-3), oy=H/2-ch/2+(Math.random()*6-3);
+    c.style.transform=`translate(${ox}px,${oy}px) rotate(${(Math.random()*4-2)}deg)`;
+    scene.appendChild(c);
+    tableCards.push(c);
+  }
+}
+function tableSpread(cb){
+  const scene=$("tableScene"), W=scene.clientWidth, H=scene.clientHeight;
+  const cw = W<560 ? 26 : 34, ch = W<560 ? 42 : 55;
+  /* 椭圆扇形摊开，像洗牌时用手推开牌 */
+  tableCards.forEach((c,i)=>{
+    const t=i/77;
+    const ang=Math.PI*(0.12+0.76*t);           /* 扇形弧度 */
+    const rx=W*0.40*(0.55+Math.random()*0.5), ry=H*0.36*(0.55+Math.random()*0.5);
+    const x=W/2 + Math.cos(ang)*rx - cw/2 + (Math.random()*30-15);
+    const y=H/2 + Math.sin(ang)*ry - ch/2 + (Math.random()*24-12);
+    const rot=Math.cos(ang)*38 + (Math.random()*20-10);
+    c.style.zIndex=(i%2===0)?(200-i):i;
+    c.style.transform=`translate(${x}px,${y}px) rotate(${rot}deg)`;
+  });
+  setTimeout(cb,850);
+}
+function tableSwirl(rounds, done){
+  const scene=$("tableScene"), W=scene.clientWidth, H=scene.clientHeight;
+  const cw = W<560 ? 26 : 34, ch = W<560 ? 42 : 55;
+  let r=0;
+  (function round(){
+    /* 椭圆内随机搅洗 */
+    tableCards.forEach(c=>{
+      const a=Math.random()*Math.PI*2;
+      const rr=Math.sqrt(Math.random());
+      const x=W/2 + Math.cos(a)*W*0.42*rr - cw/2;
+      const y=H/2 + Math.sin(a)*H*0.38*rr - ch/2;
+      const rot=Math.random()*360-180;
+      c.style.transform=`translate(${x}px,${y}px) rotate(${rot}deg)`;
+    });
+    r++;
+    if(r<rounds) setTimeout(round,820);
+    else setTimeout(done,820);
+  })();
+}
+function tableGather(done){
+  const scene=$("tableScene"), W=scene.clientWidth, H=scene.clientHeight;
+  const cw = W<560 ? 26 : 34, ch = W<560 ? 42 : 55;
+  /* 先收成两摞 */
+  tableCards.forEach((c,i)=>{
+    const pileX = i%2===0 ? W/2-cw-14 : W/2+14;
+    const x=pileX-cw/2+(Math.random()*5-2.5), y=H/2-ch/2+(Math.random()*5-2.5)-Math.floor(i/2)*0.6;
+    c.style.zIndex=i;
+    c.style.transform=`translate(${x}px,${y}px) rotate(${(Math.random()*3-1.5)}deg)`;
+  });
+  setTimeout(()=>{
+    /* 交叉洗入一摞 */
+    tableCards.forEach((c,i)=>{
+      const x=W/2-cw/2+(Math.random()*7-3.5), y=H/2-ch/2+(Math.random()*7-3.5)-i*0.45;
+      c.style.zIndex=i;
+      c.style.transform=`translate(${x}px,${y}px) rotate(${(Math.random()*2.4-1.2)}deg)`;
+    });
+    setTimeout(done,900);
+  },850);
+}
+function runShuffleAnim(){
+  buildTableCards();
+  startShuffleTalk();
+  const txt=$("shuffleText");
+  txt.textContent="牌 堆 就 位 ， 灵 数 已 注 入 …";
+  setTimeout(()=>{ txt.textContent="摊 牌 中 …";
+    tableSpread(()=>{ txt.textContent="洗 牌 中 …";
+      tableSwirl(3, ()=>{ txt.textContent="切 牌 收 拢 中 …";
+        tableGather(()=>{ txt.textContent="牌 灵 已 就 位";
+          stopShuffleTalk();
+          setTimeout(()=>{ renderResult(); go("s5"); },700);
+        });
+      });
+    });
+  },600);
+}
+
+/* ==================== 第5屏：结果展示（真实牌面） ==================== */
+function renderResult(){
+  $("resultQ").textContent=`${S.cat.n} · ${S.spread.name}`;
+  const row=$("cardsRow"); row.innerHTML="";
+  let flipped=0;
+  S.drawn.forEach((c,i)=>{
+    const d=document.createElement("div");
+    d.className="tarot-card";
+    d.innerHTML=`
+      <div class="pos-label">${S.spread.pos[i]}</div>
+      <div class="card-inner">
+        <div class="face back"><span>✦</span></div>
+        <div class="face front ${c.reversed?"reversed":""}">
+          <img src="${c.img}" alt="${c.name}" draggable="false">
+        </div>
+      </div>
+      <div class="card-name-plate">
+        <div class="cn">${c.name}</div>
+        <div class="en">${c.en}</div>
+        <span class="ori ${c.reversed?"down":"up"}">${c.reversed?"逆位":"正位"}</span>
+      </div>`;
+    d.querySelector(".card-inner").onclick=()=>{
+      if(d.classList.contains("flipped")) return;
+      d.classList.add("flipped"); flipped++;
+      if(flipped===S.count) $("toReading").disabled=false;
+    };
+    row.appendChild(d);
+  });
+  $("toReading").disabled=true;
+  S.drawn.forEach((_,i)=>setTimeout(()=>{
+    const card=$("cardsRow").children[i];
+    if(card && !card.classList.contains("flipped")) card.querySelector(".card-inner").click();
+  }, 1500+i*700));
+}
+
+/* ==================== 第6屏：关键字解牌（人格管线） ==================== */
+function buildReading(){
+  const p=P();
+  $("readingTitle").textContent=`${S.cat.n} · ${S.spread.name} · ${p.name}解牌`;
+  const list=$("readingList"); list.innerHTML="";
+  S.drawn.forEach((c,i)=>{
+    const kws=K(c);
+    const d=document.createElement("div");
+    d.className="read-item"; d.style.animationDelay=(i*0.12)+"s";
+    d.innerHTML=`
+      <div class="rh"><span class="rpos">${S.spread.pos[i]}</span>
+        <span class="rcard">${c.name}</span>
+        <span class="rori ${c.reversed?"down":"up"}">${c.reversed?"逆位":"正位"}</span></div>
+      <div class="kw">${kws.map(k=>`<span>${k}</span>`).join("")}</div>
+      <div class="rtxt">${p.kwItem(c,S.spread.pos[i])}</div>`;
+    list.appendChild(d);
+  });
+  if(p.kwExtra){ const ex=document.createElement("div"); ex.innerHTML=p.kwExtra(S.drawn); list.appendChild(ex.firstElementChild); }
+  $("payAmt1").textContent=S.price.toFixed(2);
+  $("payAmt2").textContent=S.price.toFixed(2);
+}
+
+/* ==================== 支付弹窗（按人格分流付款码） ==================== */
+function openPay(){ const p=P();
+  $("payImg").src=p.pay;
+  $("payTitle").textContent=`${p.name} · 扫码随缘`;
+  $("payTip").innerHTML=p.payTip;
+  $("payModal").classList.add("show");
+}
+function payDone(paid){ const p=P();
+  $("payModal").classList.remove("show");
+  toast(paid?p.paidToast:p.runToast);
+  buildDetail();
+  setTimeout(()=>go("s7"),600);
+}
+
+/* ==================== 第7屏：详情分解（人格管线） ==================== */
+function buildDetail(){
+  const p=P(), list=$("detailList"); list.innerHTML="";
+  document.querySelector("#s7 .q").textContent=`${p.name}的完整解读`;
+  const catN=S.cat.n;
+  if(p.pairs){
+    /* 串子型：雷诺曼两两串联 */
+    if(S.drawn.length===1){
+      const c=S.drawn[0];
+      const d=document.createElement("div"); d.className="read-item";
+      d.innerHTML=`<div class="rh"><span class="rcard">${c.name}</span></div>
+        <div class="rtxt">${p.detailItem(c,null)}<br><br>一张牌一句话——「${K(c)[0]}」就是答案本身，别想复杂了。</div>`;
+      list.appendChild(d);
+    } else {
+      for(let i=0;i<S.drawn.length-1;i++){
+        const d=document.createElement("div");
+        d.className="read-item"; d.style.animationDelay=(i*0.12)+"s";
+        d.innerHTML=p.pairItem(S.drawn[i],S.drawn[i+1]);
+        list.appendChild(d);
+      }
+      const tail=S.drawn[S.drawn.length-1];
+      const note=document.createElement("div"); note.className="read-item";
+      note.innerHTML=`<div class="rtxt">收尾牌 ${tail.name}：${tail.desc} 它压阵，全串的落点就压在这儿。</div>`;
+      list.appendChild(note);
+    }
+  } else {
+    S.drawn.forEach((c,i)=>{
+      const d=document.createElement("div");
+      d.className="read-item"; d.style.animationDelay=(i*0.12)+"s";
+      d.innerHTML=`
+        <div class="rh"><span class="rpos">${S.spread.pos[i]}</span>
+          <span class="rcard">${c.name}（${c.en}）</span>
+          <span class="rori ${c.reversed?"down":"up"}">${c.reversed?"逆位":"正位"}</span></div>
+        <div class="rtxt">${p.detailItem(c,S.spread.pos[i],catN)}</div>`;
+      list.appendChild(d);
+    });
+  }
+  const ups=S.drawn.filter(c=>!c.reversed).length;
+  const majors=S.drawn.filter(c=>c.arcana==="major").length;
+  $("summaryBox").innerHTML=p.summary({
+    ups, majors, total:S.drawn.length, spread:S.spread.name, hint:CAT_HINT[S.cat.k],
+    chain:S.drawn.map(c=>"「"+K(c)[0]+"」").join(" → "),
+    first:K(S.drawn[0])[0], last:K(S.drawn[S.drawn.length-1])[0]
+  });
+}
+
+/* ==================== 重置 ==================== */
+function resetAll(){
+  S.persona=null; S.cat=null; S.count=0; S.spread=null; S.numbers=[]; S.drawn=[]; S.price=0;
+  document.querySelectorAll("#personaGrid .persona").forEach(x=>x.classList.remove("sel"));
+  $("personaNext").disabled=true;
+  document.querySelectorAll("#catGrid .cat").forEach(x=>x.classList.remove("sel"));
+  $("catNext").disabled=true;
+  document.querySelectorAll(".num-btn").forEach(x=>x.classList.remove("sel"));
+  document.querySelectorAll(".num-btn")[2].click();
+  $("buddy").classList.remove("show");
+  $("bubble").classList.remove("show");
+  stopShuffleTalk();
+  go("s0");
+}
+
+/* ==================== 星空背景 ==================== */
+(function(){
+  const box=$("stars");
+  for(let i=0;i<110;i++){
+    const s=document.createElement("span");
+    const size=Math.random()*2.2+0.6;
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;
+      width:${size}px;height:${size}px;
+      animation-duration:${2+Math.random()*4}s;animation-delay:${Math.random()*4}s;`;
+    box.appendChild(s);
+  }
+})();
+</script>
+</body>
+</html>
